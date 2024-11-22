@@ -96,9 +96,14 @@ jobs:
           cd test/csharp
           dotnet test /p:Configuration=Release /p:NativeBuildOutputDir="../../build/cpu/" /p:OrtLibDir="../../ort/lib/" --verbosity normal
 
-      - name: Run tests
+      - name: Docker -- Tag the Docker Image
         run: |
-          set -e -x
-          export ORTGENAI_LOG_ORT_LIB=1
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GITHUB_WORKSPACE/ort/lib
-          ./build/cpu/unit_tests
+          docker tag ort_genai_linux_arm64_gha ilopezluna/onnxruntime:latest
+
+      - name: Docker -- Push the Docker Image
+        env:
+          REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+          docker push ilopezluna/onnxruntime:latest
