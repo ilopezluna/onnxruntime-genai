@@ -69,6 +69,27 @@ jobs:
           ls -l ${{ github.workspace }}/build/cpu/osx-arm64
           ls -l ${{ github.workspace }}/build/cpu/osx-arm64/wheel
 
+      - name: Build Docker Image
+        run: |
+          # Define the path to the build artifacts
+          BUILD_ARTIFACT_PATH="${{ github.workspace }}/build/cpu/osx-arm64"
+          
+          # Create a Dockerfile if it's not present
+          cat <<EOF > Dockerfile
+          FROM ubuntu:20.04
+          WORKDIR /app
+          COPY ./build/cpu/osx-arm64 /app
+          CMD ["./unit_tests"] # Replace with the appropriate command to run the artifact
+          EOF
+          
+          # Build and tag the Docker image
+          docker build -t my-image-name:${{ github.run_id }} .
+          
+          # Optional: Push the image to Docker Hub or a registry
+          # docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          # docker tag my-image-name:${{ github.run_id }} my-repo/my-image-name:${{ github.run_id }}
+          # docker push my-repo/my-image-name:${{ github.run_id }}
+
       # This will also download all the test models to the test/test_models directory
       # These models are used by the python tests as well as C#, C++ and others.
       - name: Run the python tests
